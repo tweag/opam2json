@@ -1,0 +1,27 @@
+opam-version: "2.0"
+name: "opam2json"
+version: "0.1"
+maintainer: "Alexander Bantyev <alexander.bantyev@tweag.io>"
+authors: "Alexander Bantyev <alexander.bantyev@tweag.io>"
+license: "LGPL-2.1 with OCaml linking exception"
+homepage: "https://github.com/tweag/opam2json"
+bug-reports: "https://github.com/tweag/opam2json/issues"
+depends: [
+  "ocaml" {>= "4.03.0"}
+  "ocamlfind"
+  "cmdliner" {>= "1.0.0"}
+  "opam-file-format" {>= "2.0.0" & < "2.1"}
+  "yojson" {>= "1.7.0"}
+]
+build: [
+  [make "COMP=ocamlc" {!ocaml:native}]
+  [make "tests"] {with-test}
+]
+dev-repo: "git+https://github.com/tweag/opam2json.git"
+synopsis: "Command-line tool for turning opam file format into json"
+description: """
+opam2json reads file in the opam file format and outputs them in JSON.
+
+The specification for the syntax itself is available at:
+    http://opam.ocaml.org/doc/Manual.html#Common-file-format
+"""
