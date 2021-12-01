@@ -1,0 +1,2 @@
+bin: ["opam2json"]
+man: ["opam2json.1"]
