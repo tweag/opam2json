@@ -1,6 +1,6 @@
 all: opam2json opam2json.1
 
-PACKAGES = unix cmdliner opam-file-format yojson
+PACKAGES = cmdliner opam-file-format yojson
 
 COMP ?= ocamlopt
 
