@@ -3,3 +3,4 @@
 *.cmx
 opam2json
 opam2json.1
+result*
