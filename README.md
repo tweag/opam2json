@@ -20,11 +20,3 @@ options.
 
 A big source of inspiration for this project was
 [opam-ed](https://github.com/AltGr/opam-ed).
-
-### License
-
-🄯 (copyleft) 2021 Tweag.
-
-opam2json is distributed under the terms of the GNU General Public License
-version 2.1, with the special exception on linking describted in the file
-LICENSE.
