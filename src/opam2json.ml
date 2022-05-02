@@ -11,6 +11,7 @@
 open OpamParserTypes
 open Cmdliner
 open Yojson
+open Yojson.Basic.Util
 
 let fatal_exn = function
   | Sys.Break as e -> raise e
@@ -66,15 +67,25 @@ let rec opam_value_to_json : (OpamParserTypes.value -> Yojson.Basic.t) = functio
   | Env_binding (_, v1, op, v2) -> `Assoc [("op", `String (render_env_update_op op)); ("val", list_to_json [v1; v2])]
 and list_to_json l = `List (List.map opam_value_to_json l)
 
+let merge_sections = List.fold_left
+                       (fun acc ->
+                         fun (name, value) ->
+                         (match List.assoc_opt name acc with
+                          | None -> (name, value)::acc
+                          | Some v -> (name, combine v value)::(List.remove_assoc name acc))) []
+
 let rec section_to_json = function
   | { section_kind; section_name; section_items } ->
-     (section_kind, `Assoc (List.map file_item_to_json_tuple section_items))
+     let items = `Assoc (List.map file_item_to_json_tuple section_items) in
+     (section_kind, match section_name with
+                    | None -> items
+                    | Some name -> `Assoc [(name, items)])
 and file_item_to_json_tuple : (OpamParserTypes.opamfile_item -> string * Yojson.Basic.t) = function
   | Section (_, s) -> section_to_json s
   | Variable (_, name, v) -> (name, opam_value_to_json v)
 
 let file_to_json = function
-  | { file_contents; file_name } -> `Assoc (List.map file_item_to_json_tuple file_contents)
+  | { file_contents; file_name } -> `Assoc (merge_sections (List.map file_item_to_json_tuple file_contents))
 
 let print_file f = print_string (Yojson.Basic.pretty_to_string (file_to_json f))
 
