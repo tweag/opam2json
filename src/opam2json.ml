@@ -93,7 +93,7 @@ let run files =
   if files = [] then
     try
       let txt = try string_of_channel stdin with Sys_error _ -> "" in
-      let orig = OpamParser.string txt "/dev/stdin" in
+      let orig = OpamParser.FullPos.string txt "/dev/stdin" in
       print_file orig
     with e ->
       fatal_exn e;
@@ -106,7 +106,7 @@ let run files =
         try
           let ic = open_in file in
           let txt = try string_of_channel ic with Sys_error _ -> "" in
-          print_file (OpamParser.string txt file);
+          print_file (OpamParser.FullPos.string txt file);
           ok
         with e ->
           fatal_exn e;
