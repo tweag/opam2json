@@ -1,7 +1,7 @@
 { stdenv, fetchFromGitHub, opam-installer, ocaml, findlib, yojson, opam-file-format, cmdliner }:
 stdenv.mkDerivation {
   pname = "opam2json";
-  version = "0.1";
+  version = "dev";
 
   src = ./.;
 
