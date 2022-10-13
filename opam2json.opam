@@ -15,7 +15,6 @@ depends: [
 ]
 build: [
   [make "COMP=ocamlc" {!ocaml:native}]
-  [make "tests"] {with-test}
 ]
 dev-repo: "git+https://github.com/tweag/opam2json.git"
 synopsis: "Command-line tool for turning opam file format into json"
