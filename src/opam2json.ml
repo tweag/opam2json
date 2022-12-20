@@ -56,15 +56,15 @@ let rec opam_value_to_json : (OpamParserTypes.value -> Yojson.Basic.t) = functio
   | Bool (_, b) -> `Bool b
   | Int (_, i) -> `Int i
   | String (_, s) -> `String s
-  | Relop (_ , op, v1, v2) -> `Assoc [("op", `String (render_relop op)); ("val", list_to_json [v1; v2])]
-  | Prefix_relop (_, op, v) -> `Assoc [("op", `String (render_relop op)); ("val", list_to_json [v])]
-  | Logop (_, op, v1, v2) -> `Assoc [("op", `String (render_logop op)); ("val", list_to_json [v1; v2])]
-  | Pfxop (_, op, v) -> `Assoc [("op", `String (render_pfxop op)); ("val", list_to_json [v])]
+  | Relop (_ , op, v1, v2) -> `Assoc [("relop", `String (render_relop op)); ("lhs", opam_value_to_json v1); ("rhs", opam_value_to_json v2)]
+  | Prefix_relop (_, op, v) -> `Assoc [("prefix_relop", `String (render_relop op)); ("arg", opam_value_to_json v)]
+  | Logop (_, op, v1, v2) -> `Assoc [("logop", `String (render_logop op));  ("lhs", opam_value_to_json v1); ("rhs", opam_value_to_json v2)]
+  | Pfxop (_, op, v) -> `Assoc [("pfxop", `String (render_pfxop op)); ("arg", opam_value_to_json v)]
+  | Env_binding (_, v1, op, v2) -> `Assoc [("env_update", `String (render_env_update_op op)); ("lhs", opam_value_to_json v1); ("rhs", opam_value_to_json v2)]
   | Ident (_, i) -> `Assoc [("id", `String i)]
   | List (_, l) -> list_to_json l
-  | Group (_, g) -> list_to_json g
-  | Option (_, v, l) -> `Assoc [("val", opam_value_to_json v); ("options", list_to_json l)]
-  | Env_binding (_, v1, op, v2) -> `Assoc [("op", `String (render_env_update_op op)); ("val", list_to_json [v1; v2])]
+  | Group (_, g) -> `Assoc [("group", list_to_json g)]
+  | Option (_, v, l) -> `Assoc [("val", opam_value_to_json v); ("conditions", list_to_json l)]
 and list_to_json l = `List (List.map opam_value_to_json l)
 
 let merge_sections = List.fold_left
@@ -72,14 +72,14 @@ let merge_sections = List.fold_left
                          fun (name, value) ->
                          (match List.assoc_opt name acc with
                           | None -> (name, value)::acc
-                          | Some v -> (name, combine v value)::(List.remove_assoc name acc))) []
+                          | Some v -> (name, `Assoc [("section", combine (member "section" v) (member "section" value))])::(List.remove_assoc name acc))) []
 
 let rec section_to_json = function
   | { section_kind; section_name; section_items } ->
      let items = `Assoc (List.map file_item_to_json_tuple section_items) in
      (section_kind, match section_name with
-                    | None -> items
-                    | Some name -> `Assoc [(name, items)])
+                    | None -> `Assoc [("section", items)]
+                    | Some name -> `Assoc [("section", `Assoc [(name, items)])])
 and file_item_to_json_tuple : (OpamParserTypes.opamfile_item -> string * Yojson.Basic.t) = function
   | Section (_, s) -> section_to_json s
   | Variable (_, name, v) -> (name, opam_value_to_json v)
