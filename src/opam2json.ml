@@ -67,12 +67,17 @@ let rec opam_value_to_json : (OpamParserTypes.value -> Yojson.Basic.t) = functio
   | Option (_, v, l) -> `Assoc [("val", opam_value_to_json v); ("conditions", list_to_json l)]
 and list_to_json l = `List (List.map opam_value_to_json l)
 
+let merge ~name a b = match a, b with
+  | `Assoc [("section", a)], `Assoc [("section", b)] -> `Assoc [("section", combine a b)]
+  | `List a, `List b -> `List (a @ b)
+  | _ -> Format.kasprintf invalid_arg "merge %S: neither a section nor a list" name
+
 let merge_sections = List.fold_left
                        (fun acc ->
                          fun (name, value) ->
                          (match List.assoc_opt name acc with
                           | None -> (name, value)::acc
-                          | Some v -> (name, `Assoc [("section", combine (member "section" v) (member "section" value))])::(List.remove_assoc name acc))) []
+                          | Some v -> (name, merge ~name v value)::(List.remove_assoc name acc))) []
 
 let rec section_to_json = function
   | { section_kind; section_name; section_items } ->
