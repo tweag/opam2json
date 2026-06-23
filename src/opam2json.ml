@@ -94,12 +94,13 @@ let run files =
     try
       let txt = try string_of_channel stdin with Sys_error _ -> "" in
       let orig = OpamParser.string txt "/dev/stdin" in
-      print_file orig
+      print_file orig;
+      Cmd.Exit.ok
     with e ->
       fatal_exn e;
       Printf.eprintf "Error on input from stdin: %s\n"
         (Printexc.to_string e);
-      exit 10
+      Cmd.Exit.some_error
   else
   let ok =
     List.fold_left (fun ok file ->
@@ -114,18 +115,20 @@ let run files =
           false
       ) true files
   in
-  if not ok then exit 10
-
-let cmd =
-  Term.(pure run $ arg_files)
+  if ok then Cmd.Exit.ok else Cmd.Exit.some_error
 
 let man = []
 
 let main_cmd_info =
-  Term.info "opam2json" ~version:"0.1"
+  Cmd.info "opam2json" ~version:"0.1"
     ~doc:"A command-line utility to turn opam file format to json"
     ~man
 
+let cmd =
+  let open Cmdliner.Term.Syntax in
+  Cmd.make main_cmd_info @@
+    let+ arg_files in
+    run arg_files
+
 let () =
-  let r = Term.eval (cmd, main_cmd_info) in
-  Term.exit r
+  exit (Cmd.eval' cmd)
